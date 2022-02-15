@@ -50,15 +50,27 @@ public class ProductServlet extends HttpServlet {
                 case "delete":
                     delete(request, response);
                     break;
-//                case "searchByName":
-//                    searchByName(request, response);
-//                    break;
+                case "searchByName":
+                    searchByName(request, response);
+                    break;
                 default:
                     displayAllProduct(request, response);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void searchByName(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String search = request.getParameter("search");
+        ArrayList<Product> products = productService.getProducts();
+        ArrayList<Product> productsOfSearch = new ArrayList<>();
+        for (Product product : products) {
+            productsOfSearch.add(product);
+        }
+        request.setAttribute("products", productsOfSearch);
+        RequestDispatcher requestDispatcher = request.getRequestDispatcher("view.jsp");
+        requestDispatcher.forward(request, response);
     }
 
     private void delete(HttpServletRequest request, HttpServletResponse response) throws SQLException, ServletException, IOException {

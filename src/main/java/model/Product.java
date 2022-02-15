@@ -19,13 +19,13 @@ public class Product {
         this.category = category;
     }
 
-    public Product(int id_product, String name, double price, int quantity, String color, String description) {
-        this.id_product = id_product;
+    public Product(String name, double price, int quantity, String color, String description, String category) {
         this.name = name;
         this.price = price;
         this.quantity = quantity;
         this.color = color;
         this.description = description;
+        this.category = category;
     }
 
     public Product(String name, double price, int quantity, String color, String description) {
@@ -36,13 +36,13 @@ public class Product {
         this.description = description;
     }
 
-    public Product(String name, double price, int quantity, String color, String description, String category) {
+    public Product(int id_product, String name, double price, int quantity, String color, String description) {
+        this.id_product = id_product;
         this.name = name;
         this.price = price;
         this.quantity = quantity;
         this.color = color;
         this.description = description;
-        this.category = category;
     }
 
     public int getId_product() {
@@ -53,11 +53,11 @@ public class Product {
         this.id_product = id_product;
     }
 
-    public String getName_product() {
+    public String getName() {
         return name;
     }
 
-    public void setName_product(String name_product) {
+    public void setName(String name) {
         this.name = name;
     }
 

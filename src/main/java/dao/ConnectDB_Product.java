@@ -10,35 +10,35 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-public class ConnectDB_Product implements IConnectionDB_Product{
-    private static final String SELECT_ALL_PRODUCT = "select id_product, name_product, price, quantity, color, description, name_category from product \n" +
+public class ConnectDB_Product implements IConnectionDB_Product {
+    private final MyConnection myConnection = new MyConnection();
+
+    private static final String SELECT_ALL_PRODUCTS = "select id_product, name_product, price, quantity, color, description, name_category from product\n" +
             "join category on product.id_category = category.id_category;";
-    private static final String SELECT_ALL_CATEGORY = "select * from category";
+    private static final String SELECT_ALL_CATEGORIES = "select * from category;";
     private static final String SELECT_PRODUCT_BY_ID = "select id_product, name_product, price, quantity, color, description, name_category from product\n" +
             "join category on product.id_category = category.id_category\n" +
             "where id_product = ?;";
-    private static final String INSERT_PRODUCT = "insert into product (name_product, price, quantity, color, description, id_category) value (?,?,?,?,?,?);";
-    private static final String UPDATE_PRODUCT = "update product set name_product = ?, price = ?, quantity = ?, color = ?, description = ?, id_category = ? where id_product = ?;";
-    private static final String DELETE_PRODUCT = "delete from product where id_product = ?";
-
-    private final MyConnection myConnection = new MyConnection();
+    private static final String INSERT_PRODUCT_SQL = "insert into product (name_product, price, quantity, color, description, id_category) value (?,?,?,?,?,?);";
+    private static final String DELETE_PRODUCT_SQL = "delete from product where id_product = ?;";
+    private static final String UPDATE_PRODUCT_SQL = "update product set name_product = ?, price = ?, quantity = ?, color = ?, description = ?, id_category = ? where id_product = ?;";
 
     @Override
     public ArrayList<Product> getAllProduct() {
         ArrayList<Product> products = new ArrayList<>();
         try (Connection connection = myConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(SELECT_ALL_PRODUCT);){
-            ResultSet resultSet = preparedStatement.executeQuery();
+             PreparedStatement preparedStatement = connection.prepareStatement(SELECT_ALL_PRODUCTS)) {
+            ResultSet rs = preparedStatement.executeQuery();
 
-            while (resultSet.next()) {
-                int id = resultSet.getInt("id_product");
-                String name = resultSet.getString("name_product");
-                double price = resultSet.getDouble("price");
-                int quantity = resultSet.getInt("quantity");
-                String color = resultSet.getString("color");
-                String description = resultSet.getString("description");
-                String category = resultSet.getString("name_category");
-                products.add(new Product(name, price, quantity, color, description, category));
+            while (rs.next()) {
+                int id_product = rs.getInt("id_product");
+                String name = rs.getString("name_product");
+                double price = rs.getDouble("price");
+                int quantity = rs.getInt("quantity");
+                String color = rs.getString("color");
+                String description = rs.getString("description");
+                String category = rs.getString("name_category");
+                products.add(new Product(id_product, name, price, quantity, color, description, category));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -50,12 +50,12 @@ public class ConnectDB_Product implements IConnectionDB_Product{
     public ArrayList<Category> getAllCategory() {
         ArrayList<Category> categories = new ArrayList<>();
         try (Connection connection = myConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(SELECT_ALL_CATEGORY);){
-            ResultSet resultSet = preparedStatement.executeQuery();
+             PreparedStatement preparedStatement = connection.prepareStatement(SELECT_ALL_CATEGORIES)) {
+            ResultSet rs = preparedStatement.executeQuery();
 
-            while (resultSet.next()) {
-                int id_category = resultSet.getInt("id_category");
-                String name_category = resultSet.getString("name_category");
+            while (rs.next()) {
+                int id_category = rs.getInt("id_category");
+                String name_category = rs.getString("name_category");
                 categories.add(new Category(id_category, name_category));
             }
         } catch (SQLException e) {
@@ -70,15 +70,15 @@ public class ConnectDB_Product implements IConnectionDB_Product{
         try (Connection connection = myConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(SELECT_PRODUCT_BY_ID)) {
             preparedStatement.setInt(1, id);
-            ResultSet resultSet = preparedStatement.executeQuery();
+            ResultSet rs = preparedStatement.executeQuery();
 
-            while (resultSet.next()) {
-                String name = resultSet.getString("name_product");
-                double price = resultSet.getDouble("price");
-                int quantity = resultSet.getInt("quantity");
-                String color = resultSet.getString("color");
-                String description = resultSet.getString("description");
-                String category = resultSet.getString("name_category");
+            while (rs.next()) {
+                String name = rs.getString("name_product");
+                double price = rs.getDouble("price");
+                int quantity = rs.getInt("quantity");
+                String color = rs.getString("color");
+                String description = rs.getString("description");
+                String category = rs.getString("name_category");
                 product = new Product(id, name, price, quantity, color, description, category);
             }
         } catch (SQLException e) {
@@ -91,8 +91,8 @@ public class ConnectDB_Product implements IConnectionDB_Product{
     public boolean createProduct(Product product, int id_category) {
         boolean rowInsert = false;
         try (Connection connection = myConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(INSERT_PRODUCT)) {
-            preparedStatement.setString(1, product.getName_product());
+             PreparedStatement preparedStatement = connection.prepareStatement(INSERT_PRODUCT_SQL)) {
+            preparedStatement.setString(1, product.getName());
             preparedStatement.setDouble(2, product.getPrice());
             preparedStatement.setInt(3, product.getQuantity());
             preparedStatement.setString(4, product.getColor());
@@ -107,11 +107,25 @@ public class ConnectDB_Product implements IConnectionDB_Product{
     }
 
     @Override
+    public boolean deleteProduct(int id) {
+        boolean rowDeleted = false;
+        try (Connection connection = myConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(DELETE_PRODUCT_SQL)) {
+            statement.setInt(1, id);
+
+            rowDeleted = statement.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return rowDeleted;
+    }
+
+    @Override
     public boolean updateProduct(Product product, int id_category) {
         boolean rowUpdated = false;
         try (Connection connection = myConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(UPDATE_PRODUCT)) {
-            statement.setString(1, product.getName_product());
+             PreparedStatement statement = connection.prepareStatement(UPDATE_PRODUCT_SQL)) {
+            statement.setString(1, product.getName());
             statement.setDouble(2, product.getPrice());
             statement.setInt(3, product.getQuantity());
             statement.setString(4, product.getColor());
@@ -124,19 +138,5 @@ public class ConnectDB_Product implements IConnectionDB_Product{
             e.printStackTrace();
         }
         return rowUpdated;
-    }
-
-    @Override
-    public boolean deleteProduct(int id) {
-        boolean rowDeleted = false;
-        try (Connection connection = myConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(DELETE_PRODUCT)) {
-            statement.setInt(1, id);
-
-            rowDeleted = statement.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return rowDeleted;
     }
 }
